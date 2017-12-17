@@ -4,14 +4,43 @@ const bodyParser = require('body-parser');
 let mongoose = require('mongoose');
 const jwt = require('jwt-simple');
 let app  = express();
+const bcrypt = require('bcrypt');
 const posts = [  {"message": "message1rte"},  {"message": "message2"}];
+const auth = require('./auth');
+const Message = require('./models/message');
 mongoose.Promise = Promise;
 
 const User = require('./models/user');
 
 app.use(cors());
 app.use(bodyParser.json())
-app.get('/posts',(req,res) => {  res.send(posts)});
+app.post('/message',(req,res) => {  
+    let messageDate = req.body;
+    messageDate.author = '5a2f80086ad9957a1b959226';
+    let message = new Message(messageDate);
+    message.save((err,result) => {
+        if(err){
+           return console.err(err);
+        } 
+           res.sendStatus(200)
+        
+        
+    })
+});
+
+app.get('/messages/:authorId', async (req,res) => {
+    try{
+
+        const messages = await Message.find({"author":req.params.authorId});
+        res.status(200).send(messages);
+    }
+     catch(err)
+    {
+        res.sendStatus(500);
+        console.error(err);
+    }
+
+});
 
 app.get('/users', async (req,res) => {
     try{
@@ -41,39 +70,11 @@ app.get('/profile/:id', async (req,res) => {
 
 });
 
-app.post('/register',(req,res) => {
-    let userDate = req.body;
-     let user = new User(userDate);
-     user.save((err,result) => {
-         if(err){
-             console.log(err);
-         } else {
-            res.sendStatus(200)
-         }
-         
-     })
-      
-    }
-    );
-
-app.post('/login', async (req,res) => {
-    let userDate = req.body;
-    let user = await User.findOne({email: userDate.email});
-    console.log(user);
-    let payload = {};
-    let secret = '123';
-    if(!user || userDate.password !== user.password){
-        return res.status(401).send({message: 'incorrect username or password'})
-    }
-    let token = jwt.encode(payload,secret);
-    
-    res.status(200).send({token: token});
-
-})
-
     mongoose.connect('mongodb://ivanKoretskyy:Irak+911@ds133476.mlab.com:33476/ang_node',{useMongoClient: true}, (err) => {
         if(!err) {
             console.log("connected to mongo")
         }
-    })
+    });
+
+app.use('/auth',auth);
 app.listen(3000);
