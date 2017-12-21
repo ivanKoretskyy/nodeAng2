@@ -13,10 +13,13 @@ mongoose.Promise = Promise;
 const User = require('./models/user');
 
 app.use(cors());
-app.use(bodyParser.json())
-app.post('/message',(req,res) => {  
+app.use(bodyParser.json());
+
+
+app.post('/message',auth.checkAuthenticated,(req,res) => {  
     let messageDate = req.body;
-    messageDate.author = '5a2f80086ad9957a1b959226';
+    cosnole.log(req['userId']);
+    messageDate.author = req['userId'];
     let message = new Message(messageDate);
     message.save((err,result) => {
         if(err){
@@ -24,11 +27,10 @@ app.post('/message',(req,res) => {
         } 
            res.sendStatus(200)
         
-        
     })
 });
 
-app.get('/messages/:authorId', async (req,res) => {
+app.get('/messages/:authorId',auth.checkAuthenticated, async (req,res) => {
     try{
 
         const messages = await Message.find({"author":req.params.authorId});
@@ -76,5 +78,5 @@ app.get('/profile/:id', async (req,res) => {
         }
     });
 
-app.use('/auth',auth);
+app.use('/auth',auth.router);
 app.listen(3000);

@@ -5,6 +5,26 @@ const express = require ('express');
 
 const router  = express.Router();
 
+const checkAuthenticated =(req,res,next) => {
+    
+    if (!req.headers('authorization')) {
+            return res.status(401).send({message: 'Unauthorized. Missing Auth Header'});
+        }
+
+        let token  = req.header('authorization').split('')[1];
+        console.log(JSON.stringify(req.header('authorization'),null,2));
+        console.log(JSON.stringify(req.header('authorization'),null,2));
+       
+        console.log('-------------')
+        console.log(token)
+        let payload = jwt.decode(token,'123');
+    if(!payload) {
+        return res.status(401).send({message: 'Unauthorized. Auth Header Invalid'})
+    }
+    req.userId= payload.sub;
+    next();
+    }
+
 router.post('/register', (req,res) => {
         let userDate = req.body;
          let user = new User(userDate);
@@ -24,7 +44,7 @@ router.post('/login',  async (req,res) => {
         let loginDate = req.body;
         let user = await User.findOne({email: loginDate.email});
         console.log(user);
-        let payload = {};
+        let payload = {sub: user._id};
         let secret = '123';
         if(!user ){
             return res.status(401).send({message: 'incorrect username or password'})
@@ -43,4 +63,10 @@ router.post('/login',  async (req,res) => {
     
     });
 
-module.exports = router;
+
+    let auth = {
+        router,
+        checkAuthenticated
+
+    }
+module.exports = auth;
