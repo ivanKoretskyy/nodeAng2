@@ -6,12 +6,12 @@ const express = require ('express');
 const router  = express.Router();
 
 const checkAuthenticated =(req,res,next) => {
-    
-    if (!req.headers('authorization')) {
+    debugger;
+    if (!req.header('authorization')) {
             return res.status(401).send({message: 'Unauthorized. Missing Auth Header'});
         }
 
-        let token  = req.header('authorization').split('')[1];
+        let token  = req.header('authorization').split(' ')[1];
         console.log(JSON.stringify(req.header('authorization'),null,2));
         console.log(JSON.stringify(req.header('authorization'),null,2));
        
